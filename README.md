@@ -1,4 +1,4 @@
-# Project Title
+# strack
 
 strack - follow job output as it happens
 
