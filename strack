@@ -1,0 +1,46 @@
+#!/bin/bash
+
+# Track job output as it happens. 
+# Usage: strack [-e] <jobid> 
+# Use -e flag to track error output file 
+# Made by Konstantin Mladenov, NIMH Bulgaria, APP ADMIN.
+
+e_flag=0
+while getopts ":e" option; do
+   case $option in
+      e) # display error file
+         e_flag=1 ;;
+   esac
+done
+if [[ $e_flag -ne 1 ]]
+then
+	if test $# -ne 1
+        then
+		echo "Usage: $0 [-e] <jobid>"
+		exit 1
+	fi
+	if ! [[ ${1} =~ ^[0-9_]+$ ]]
+	then
+		echo "ERROR: <jobid> must be a number or jobid_arraytaskid"
+		echo "Usage: $0 [-e] <jobid>"
+		exit 1
+	fi
+	scontrol show job ${1} | grep WorkDir | cut -d = -f 2 | xargs cd
+	scontrol show job ${1} | grep StdOut | cut -d = -f 2 | xargs tail -f
+else 
+	if test $# -ne 2 
+	then 
+		echo "Usage: $0 -e <jobid>" 
+		exit 1
+	fi
+	if ! [[ (${1} =~ ^[0-9_]+$ || ${1} =~ [e]) && (${2} =~ ^[0-9_]+$ || ${2} =~ [e])  ]] 
+	then    
+		echo "ERROR: <jobid> must be a number or jobid_arraytaskid"
+		echo "Usage: -e $0 <jobid>"
+		exit 1
+	fi 
+	echo "Checking .err file"
+	scontrol show job ${2} | grep WorkDir | cut -d = -f 2 | xargs cd
+	scontrol show job ${2} | grep StdErr | cut -d = -f 2 | xargs tail -f
+
+fi
